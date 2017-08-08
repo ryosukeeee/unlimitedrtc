@@ -81,6 +81,21 @@ public class BluetoothFragment extends Fragment implements Runnable , View.OnCli
     OutputStream mmOutputStream = null;
 
     @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        Set< BluetoothDevice > devices = mAdapter.getBondedDevices();
+        for ( BluetoothDevice device : devices){
+
+            if(device.getName().equals(DEVICE_NAME)){
+                mDevice = device;
+            }
+        }
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.bluetooth_fragment, container, false);
@@ -97,14 +112,7 @@ public class BluetoothFragment extends Fragment implements Runnable , View.OnCli
         // Buttonのクリックした時の処理を書きます
         connectButton = (Button) view.findViewById(R.id.button);
         connectButton.setOnClickListener((View.OnClickListener) this);
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
-        Set< BluetoothDevice > devices = mAdapter.getBondedDevices();
-        for ( BluetoothDevice device : devices){
 
-            if(device.getName().equals(DEVICE_NAME)){
-                mDevice = device;
-            }
-        }
     }
 
     @Override
