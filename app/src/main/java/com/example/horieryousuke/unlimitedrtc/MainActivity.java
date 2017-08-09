@@ -3,8 +3,6 @@ package com.example.horieryousuke.unlimitedrtc;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
@@ -49,7 +47,9 @@ public class MainActivity extends AppCompatActivity {
 
     private String[] _listPeerIds;
     private boolean  _bCalling;
-    private Boolean  _bConnecting;
+    private boolean  _bConnecting;
+
+    private Thread sendmessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +95,20 @@ public class MainActivity extends AppCompatActivity {
 
         _bCalling = false;
         _bConnecting = false;
+
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true){
+                    try {
+                        System.out.println("_bConnecting is true");
+                        sendString();
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {}
+                }
+            }
+        })).start();
+
 
         Button btnAction = (Button) findViewById(R.id.btnAction);
         btnAction.setEnabled(true);
@@ -508,6 +522,7 @@ public class MainActivity extends AppCompatActivity {
 
                 JSONArray peers = (JSONArray) object;
 
+
                 StringBuilder sbItems = new StringBuilder();
                 for (int i = 0; peers.length() > i; i++) {
                     String strValue = "";
@@ -534,6 +549,7 @@ public class MainActivity extends AppCompatActivity {
                 if ((null != _listPeerIds) && (0 < _listPeerIds.length)) {
                     calling(_listPeerIds[0]);
                     connecting(_listPeerIds[0]);
+                    System.out.println("_listPeerIds"+_listPeerIds[0]);
                 }
             }
         });
@@ -574,15 +590,16 @@ public class MainActivity extends AppCompatActivity {
     void connected()
     {
         _bConnecting = true;
+        System.out.println("_bconnecting is true");
 
-        updateUI();
+       // updateUI();
     }
 
     void disconnected()
     {
         _bConnecting = false;
 
-        updateUI();
+       // updateUI();
     }
 
     void updateUI()
@@ -722,4 +739,17 @@ public class MainActivity extends AppCompatActivity {
 
         super.onDestroy();
     }
+
+    void sendString()
+    {
+        String strData = "c";
+        boolean bResult = false;
+        if(_bConnecting){
+            bResult =  _data.send(strData);
+        }
+       
+        if(bResult){
+        }
+    }
+
 }
