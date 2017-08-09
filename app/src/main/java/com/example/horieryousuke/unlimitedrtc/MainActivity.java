@@ -3,6 +3,8 @@ package com.example.horieryousuke.unlimitedrtc;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +23,9 @@ import android.widget.TextView;
 
 import org.json.JSONArray;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 import io.skyway.Peer.*;
 import io.skyway.Peer.Browser.Canvas;
 import io.skyway.Peer.Browser.MediaConstraints;
@@ -33,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Peer            _peer;
     private MediaConnection _media;
+    private DataConnection _data;
 
     private MediaStream _msLocal;
     private MediaStream _msRemote;
@@ -43,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String[] _listPeerIds;
     private boolean  _bCalling;
+    private Boolean  _bConnecting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         _bCalling = false;
+        _bConnecting = false;
 
         Button btnAction = (Button) findViewById(R.id.btnAction);
         btnAction.setEnabled(true);
@@ -168,6 +176,41 @@ public class MainActivity extends AppCompatActivity {
 
 
         updateUI();
+    }
+
+    void connecting(String strPeerId)
+    {
+        if (null == _peer)
+        {
+            return;
+        }
+
+        if (null != _data)
+        {
+            _data.close();
+            _data = null;
+        }
+
+        //////////////////////////////////////////////////////////////////////
+        ///////////////  START: Connecting Peer   ////////////////////////////
+        //////////////////////////////////////////////////////////////////////
+
+        // connect option
+        ConnectOption option = new ConnectOption();
+        option.metadata = "data connection";
+        option.label = "chat";
+        option.serialization = DataConnection.SerializationEnum.BINARY;
+
+
+        // connect
+        _data = _peer.connect(strPeerId, option);
+
+        if (null != _data) {
+            setDataCallback(_data);
+        }
+        //////////////////////////////////////////////////////////////////////
+        ////////////////  END: Connecting Peer   /////////////////////////////
+        //////////////////////////////////////////////////////////////////////
     }
 
     //////////Start:Set Peer callback////////////////
@@ -345,6 +388,109 @@ public class MainActivity extends AppCompatActivity {
         media.on(MediaConnection.MediaEventEnum.ERROR, null);
     }
 
+
+    void setDataCallback(DataConnection data)
+    {
+        // !!!: DataEvent/Open
+        data.on(DataConnection.DataEventEnum.OPEN, new OnCallback()
+        {
+            @Override
+            public void onCallback(Object object)
+            {
+                // TODO: DataEvent/OPEN
+                connected();
+                System.out.println("media connection is opened ");
+            }
+        });
+
+        // !!!: DataEvent/Data
+        data.on(DataConnection.DataEventEnum.DATA, new OnCallback() {
+            @Override
+            public void onCallback(Object object) {
+                String strValue = null;
+
+                if (object instanceof String) {
+                    // TODO: Receive String object
+                    strValue = (String) object;
+                } else if (object instanceof Double) {
+                    Double doubleValue = (Double) object;
+
+                    strValue = doubleValue.toString();
+                } else if (object instanceof ArrayList) {
+                    // TODO: receive Array list object
+                    ArrayList arrayValue = (ArrayList) object;
+
+                    StringBuilder sbResult = new StringBuilder();
+
+                    for (Object item : arrayValue) {
+                        sbResult.append(item.toString());
+                        sbResult.append("\n");
+                    }
+
+                    strValue = sbResult.toString();
+                } else if (object instanceof Map) {
+                    // TODO: receive Map object
+                    Map mapValue = (Map) object;
+
+                    StringBuilder sbResult = new StringBuilder();
+
+                    Object[] objKeys = mapValue.keySet().toArray();
+                    for (Object objKey : objKeys) {
+                        Object objValue = mapValue.get(objKey);
+
+                        sbResult.append(objKey.toString());
+                        sbResult.append(" = ");
+                        sbResult.append(objValue.toString());
+                        sbResult.append("\n");
+                    }
+
+                    strValue = sbResult.toString();
+
+                    updateUI();
+                    strValue = "Received Image.(Type:byte[])";
+                }
+            }
+        });
+
+        // !!!: DataEvent/Close
+        data.on(DataConnection.DataEventEnum.CLOSE, new OnCallback() {
+            @Override
+            public void onCallback(Object object) {
+                // TODO: DataEvent/CLOSE
+                _data = null;
+                disconnected();
+            }
+        });
+
+        // !!!: DataEvent/Error
+        data.on(DataConnection.DataEventEnum.ERROR, new OnCallback() {
+            @Override
+            public void onCallback(Object object) {
+                // TODO: DataEvent/ERROR
+                PeerError error = (PeerError) object;
+
+                Log.d(TAG, "[On/DataError]" + error);
+
+                String strMessage = error.message;
+                String strLabel = getString(android.R.string.ok);
+
+
+            }
+        });
+    }
+    //////////////////////////////////////////////////////////////////////////////////
+    /////////////////  END: Set SkyWay peer Data connection callback   ///////////////
+    //////////////////////////////////////////////////////////////////////////////////
+
+    void unsetDataCallback(DataConnection data)
+    {
+        data.on(DataConnection.DataEventEnum.OPEN, null);
+        data.on(DataConnection.DataEventEnum.DATA, null);
+        data.on(DataConnection.DataEventEnum.CLOSE, null);
+        data.on(DataConnection.DataEventEnum.ERROR, null);
+    }
+
+
     // Listing all peers
     void listingPeers()
     {
@@ -387,6 +533,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if ((null != _listPeerIds) && (0 < _listPeerIds.length)) {
                     calling(_listPeerIds[0]);
+                    connecting(_listPeerIds[0]);
                 }
             }
         });
@@ -411,6 +558,31 @@ public class MainActivity extends AppCompatActivity {
         {
             _media.close();
         }
+        if (false == _bConnecting)
+        {
+            return;
+        }
+
+        _bConnecting = false;
+
+        if (null != _data)
+        {
+            _data.close();
+        }
+    }
+
+    void connected()
+    {
+        _bConnecting = true;
+
+        updateUI();
+    }
+
+    void disconnected()
+    {
+        _bConnecting = false;
+
+        updateUI();
     }
 
     void updateUI()
