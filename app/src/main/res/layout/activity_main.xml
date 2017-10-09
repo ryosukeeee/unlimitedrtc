@@ -65,6 +65,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <Button
+                android:id="@+id/bluetooth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:text="Bluetooth" />
+
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -92,17 +99,7 @@
                 />
 
         </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center|bottom">
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Switch Camera"
-                android:id="@+id/switchCameraAction"
-                android:enabled="true" />
-        </LinearLayout>
+
 
     </LinearLayout>
 

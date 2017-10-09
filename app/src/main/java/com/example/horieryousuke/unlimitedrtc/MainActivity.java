@@ -8,8 +8,6 @@ import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -18,6 +16,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+
 
 import org.json.JSONArray;
 
@@ -30,7 +29,7 @@ import io.skyway.Peer.Browser.MediaConstraints;
 import io.skyway.Peer.Browser.MediaStream;
 import io.skyway.Peer.Browser.Navigator;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -49,7 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean  _bCalling;
     private boolean  _bConnecting;
 
-    private Thread sendmessage;
+    private boolean _bluetoothConnecting = false;
+
+    private BluetoothAsync bluetoothAsync = new BluetoothAsync();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +65,9 @@ public class MainActivity extends AppCompatActivity {
         _handler = new Handler(Looper.getMainLooper());
         Context context = getApplicationContext();
 
+        //initialize bluetooth
 
+        bluetoothAsync.init();
         //////////////////////////////////////////////////////////////////////
         //////////////////  START: Initialize SkyWay Peer ////////////////////
         //////////////////////////////////////////////////////////////////////
@@ -99,11 +102,20 @@ public class MainActivity extends AppCompatActivity {
         (new Thread(new Runnable() {
             @Override
             public void run() {
+
                 while(true){
                     try {
-                        System.out.println("_bConnecting is true");
-                        sendString();
+
+                        if(_bluetoothConnecting){
+                            System.out.println("_bConnecting is true");
+                            sendString();
+                            System.out.println("run is called and dosend is called");
+                            bluetoothAsync.doSend("c");
+
+
+                        }
                         Thread.sleep(1000);
+
                     } catch (InterruptedException e) {}
                 }
             }
@@ -130,6 +142,20 @@ public class MainActivity extends AppCompatActivity {
 
                 v.setEnabled(true);
             }
+        });
+        findViewById(R.id.bluetooth).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                bluetoothAsync.doConnect();
+                _bluetoothConnecting = true;
+                System.out.println("bluetoothConnectiongflg"+_bluetoothConnecting);
+                //bluetoothAsync.doSend("c");
+
+
+
+            }
+
         });
 
 
@@ -602,6 +628,7 @@ public class MainActivity extends AppCompatActivity {
        // updateUI();
     }
 
+
     void updateUI()
     {
         _handler.post(new Runnable() {
@@ -737,8 +764,10 @@ public class MainActivity extends AppCompatActivity {
         _listPeerIds = null;
         _handler = null;
 
+        bluetoothAsync.doClose();
         super.onDestroy();
     }
+
 
     void sendString()
     {
@@ -747,9 +776,10 @@ public class MainActivity extends AppCompatActivity {
         if(_bConnecting){
             bResult =  _data.send(strData);
         }
-       
+
         if(bResult){
         }
     }
+
 
 }

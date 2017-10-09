@@ -39,7 +39,7 @@ public class BluetoothFragment extends Fragment implements Runnable , View.OnCli
     private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     /* デバイス名 */
-    private final String DEVICE_NAME = "RNBT-C849";
+    private final String DEVICE_NAME = "RNBT-C8A0";
 
     /* Soket */
     private BluetoothSocket mSocket;
