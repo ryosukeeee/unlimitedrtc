@@ -1,8 +1,6 @@
 package com.example.horieryousuke.unlimitedrtc;
 
-/**
- * Created by horieryousuke on 2017/10/08.
- */
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
