@@ -50,7 +50,9 @@ public class MainActivity extends AppCompatActivity{
 
     private boolean _bluetoothConnecting = false;
 
-    private BluetoothAsync bluetoothAsync = new BluetoothAsync();
+    private BluetoothAsync bluetoothAsync = new BluetoothAsync(this);
+
+    public String _senddata = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +113,7 @@ public class MainActivity extends AppCompatActivity{
                             sendString();
                             System.out.println("run is called and dosend is called");
                             bluetoothAsync.doSend("c");
+
 
 
                         }
@@ -260,7 +263,7 @@ public class MainActivity extends AppCompatActivity{
         //////////////////////////////////////////////////////////////////////////////////
         ///////////////////// START: Set SkyWay peer callback   //////////////////////////
         //////////////////////////////////////////////////////////////////////////////////
-
+        System.out.println("setPeerCallback is called");
         // !!!: Event/Open
         peer.on(Peer.PeerEventEnum.OPEN, new OnCallback()
         {
@@ -268,11 +271,13 @@ public class MainActivity extends AppCompatActivity{
             public void onCallback(Object object)
             {
                 Log.d(TAG, "[On/Open]");
-
+                System.out.println("Peer is opened");
                 if (object instanceof String)
                 {
                     _id = (String) object;
-                    Log.d(TAG, "ID:" + _id);
+                    Log.d(TAG, "my peer ID:" + _id);
+
+
 
                     updateUI();
                 }
@@ -335,6 +340,8 @@ public class MainActivity extends AppCompatActivity{
 
                 String strMessage = "" + error;
                 String strLabel = getString(android.R.string.ok);
+
+                System.out.println("an Error is occured");
 
 
             }
@@ -646,7 +653,7 @@ public class MainActivity extends AppCompatActivity{
                 TextView tvOwnId = (TextView) findViewById(R.id.tvOwnId);
                 if (null != tvOwnId) {
                     if (null == _id) {
-                        tvOwnId.setText("");
+                        tvOwnId.setText("null your id");
                     } else {
                         tvOwnId.setText(_id);
                     }
@@ -771,7 +778,8 @@ public class MainActivity extends AppCompatActivity{
 
     void sendString()
     {
-        String strData = "c";
+        String strData = _senddata;
+        //String strData = "c";
         boolean bResult = false;
         if(_bConnecting){
             bResult =  _data.send(strData);

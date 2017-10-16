@@ -24,8 +24,12 @@ public class BluetoothAsync {
     private InputStream btIn;
     private OutputStream btOut;
     private final String DEVICE_NAME = "RNBT-C8A0";
+    private MainActivity mainActivity;
 
-
+    public BluetoothAsync(MainActivity activity){
+        mainActivity = activity;
+//
+    }
 
     /**
      * Bluetoothの初期化。
@@ -168,9 +172,10 @@ public class BluetoothAsync {
                 int len = btIn.read(buff); // TODO:ループして読み込み
                 String readMsg = new String(buff, 0, len);
                 System.out.println("bluetooth result"+readMsg);
+                mainActivity._senddata= readMsg;
                 return new String(buff, 0, len);
             } catch (Throwable t) {
-                System.out.println("catche is called");
+                System.out.println("catch is called");
                 doClose();
                 return t;
             }
@@ -178,11 +183,7 @@ public class BluetoothAsync {
 
         @Override
         protected void onPostExecute(Object result) {
-            if (result instanceof Exception) {
-                Log.e(TAG,result.toString(),(Throwable)result);
-                System.out.println("result is received"+result.toString());
-            } else {
-            }
+
         }
     }
 }
